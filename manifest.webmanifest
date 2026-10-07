@@ -1,11 +1,12 @@
 {
-  "name": "Goma · Bitácora Mondioring",
+  "name": "Goma · Mondioring Coach",
   "short_name": "Goma MR",
-  "description": "Bitácora móvil de entrenamiento para Goma orientada a Mondioring Categoría 3.",
+  "description": "Bitácora y coach móvil de entrenamiento para Goma, orientada a Mondioring Categoría 3.",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#111827",
-  "theme_color": "#111827",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
   "orientation": "portrait-primary",
   "icons": [
     {
