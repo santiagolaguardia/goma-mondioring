@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Goma MR">
+  <title>Goma · Bitácora Mondioring</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="brand"><h1>Goma · Mondioring III</h1><p>Bitácora móvil de entrenamiento</p></div>
+      <div class="row">
+        <button id="installBtn" class="btn" type="button" style="display:none">Instalar</button>
+        <button id="installHelpBtn" class="iconBtn" type="button" aria-label="Cómo instalar">?</button>
+      </div>
+    </header>
+
+    <nav class="tabs" aria-label="Secciones">
+      <button class="tab active" data-tab="home" type="button">Hoy</button>
+      <button class="tab" data-tab="map" type="button">Programa C3</button>
+      <button class="tab" data-tab="history" type="button">Historial</button>
+      <button class="tab" data-tab="progress" type="button">Evolución</button>
+    </nav>
+
+    <section id="sec-home" class="section active">
+      <div class="grid two">
+        <div class="kpi"><small>Sesiones</small><strong id="kpiSessions">0</strong></div>
+        <div class="kpi"><small>Último entrenamiento</small><strong id="kpiLast">—</strong></div>
+        <div class="kpi"><small>Aciertos registrados</small><strong id="kpiAccuracy">—</strong></div>
+        <div class="kpi"><small>Peso de referencia</small><strong>30 kg</strong></div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h2>Prioridades actuales</h2>
+        <div class="row"><span class="pill">🔴 Mordida</span><span class="pill">🟠 Llamada bajo drive</span><span class="pill">🟠 Posiciones</span><span class="pill">🟢 Junto</span></div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <div class="row" style="justify-content:space-between"><h2>Últimas sesiones</h2><span class="tiny muted">Guardadas en este dispositivo</span></div>
+        <div id="recentSessions"></div>
+      </div>
+
+      <details style="margin-top:12px">
+        <summary>Backup y datos</summary>
+        <p class="small muted">La app guarda las sesiones en el teléfono. Exportá un backup periódicamente para no perderlas si borrás los datos del navegador.</p>
+        <div class="quick">
+          <button id="exportBtn" type="button" class="btn">Exportar backup</button>
+          <label class="btn" style="text-align:center">Importar backup<input id="importInput" type="file" accept="application/json" hidden></label>
+        </div>
+        <button id="clearBtn" type="button" class="btn danger" style="width:100%;margin-top:8px">Borrar datos del dispositivo</button>
+      </details>
+
+      <div id="installHelp" class="installHint callout" style="margin-top:12px">
+        <b>Instalación:</b> en Android abrí el menú del navegador y elegí “Instalar app” o “Agregar a pantalla principal”. En iPhone/iPad, Safari → Compartir → “Agregar a inicio”.
+      </div>
+    </section>
+
+    <section id="sec-map" class="section">
+      <div class="card">
+        <h2>Mapa de entrenamiento C3</h2>
+        <p class="small muted">Escala: 0 No iniciado · 1 Fundamentos · 2 En construcción · 3 Comprendido · 4 Consolidado · 5 Competitivo.</p>
+        <div id="exerciseMap"></div>
+      </div>
+    </section>
+
+    <section id="sec-history" class="section">
+      <div class="card">
+        <div class="row" style="justify-content:space-between"><h2>Historial</h2><span class="pill"><span id="historyCount">0</span>&nbsp; sesiones</span></div>
+        <div id="historyList"></div>
+      </div>
+    </section>
+
+    <section id="sec-progress" class="section">
+      <div class="card">
+        <h2>Evolución por ejercicio</h2>
+        <p class="small muted">Resume cantidad de sesiones y porcentaje de aciertos cuando hay repeticiones registradas.</p>
+        <div id="progressList"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="bottomAdd"><button id="openSession" type="button">＋ Nueva sesión</button></div>
+
+  <div id="sessionModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="sessionTitle">
+    <div class="modalBox">
+      <div class="modalTop"><div><h2 id="sessionTitle">Nueva sesión</h2><div class="tiny muted">Cargá sólo lo que sea útil.</div></div><button id="closeSession" type="button" class="iconBtn" aria-label="Cerrar">×</button></div>
+      <form id="sessionForm">
+        <div class="grid two">
+          <div class="field"><label for="date">Fecha</label><input id="date" type="date" required></div>
+          <div class="field"><label for="minutes">Duración total (min)</label><input id="minutes" type="number" min="0" max="180" step="1" placeholder="8"></div>
+        </div>
+
+        <div class="field"><label for="exercise">Ejercicio</label><select id="exercise" required></select></div>
+        <div id="exerciseGoal" class="callout small" style="margin-bottom:11px"></div>
+        <div class="field"><label for="objective">Objetivo de esta sesión</label><input id="objective" required placeholder="Ej. mantener posiciones a 4 m sin avance"></div>
+
+        <div class="grid two">
+          <div id="fDistance" class="field"><label for="distance">Distancia (m)</label><input id="distance" type="number" min="0" max="100" step=".5"></div>
+          <div id="fDurationSec" class="field"><label for="durationSec">Duración (seg)</label><input id="durationSec" type="number" min="0" max="600" step="1"></div>
+          <div id="fHeight" class="field"><label for="height">Altura (m)</label><input id="height" type="number" min="0" max="3" step=".05"></div>
+          <div id="fReps" class="field"><label for="reps">Repeticiones</label><input id="reps" type="number" min="0" max="100"></div>
+          <div id="fHits" class="field"><label for="hits">Aciertos</label><input id="hits" type="number" min="0" max="100"></div>
+          <div id="fErrors" class="field"><label for="errors">Errores</label><input id="errors" type="number" min="0" max="100"></div>
+          <div id="fAdvance" class="field"><label for="advanceCm">Avance máximo (cm)</label><input id="advanceCm" type="number" min="0" max="300" step="1"></div>
+          <div id="fBiteDepth" class="field"><label for="biteDepth">Profundidad mordida (1-5)</label><select id="biteDepth"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+          <div id="fBiteStability" class="field"><label for="biteStability">Estabilidad mordida (1-5)</label><select id="biteStability"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+        </div>
+
+        <div class="grid two">
+          <div class="field"><label for="help">Ayudas</label><input id="help" placeholder="Target, pelota, correa, collar, HA..."></div>
+          <div class="field"><label for="reward">Refuerzo</label><input id="reward" placeholder="Pelota, mordedor, comida..."></div>
+        </div>
+
+        <div class="grid two">
+          <div class="field"><label for="drive">Drive / actitud (1-5)</label><select id="drive"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+          <div class="field"><label for="precision">Precisión (1-5)</label><select id="precision"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+          <div class="field"><label for="stability">Estabilidad (1-5)</label><select id="stability"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+          <div class="field"><label for="decision">Próxima decisión</label><select id="decision"><option>Mantener dificultad</option><option>Progresar</option><option>Retroceder</option><option>Modificar criterio</option><option>Revisar con coach</option></select></div>
+        </div>
+
+        <div class="field"><label for="notes">Observaciones</label><textarea id="notes" placeholder="Qué salió bien, qué falló y cualquier detalle técnico relevante."></textarea></div>
+        <div class="quick"><button id="cancelSession" type="button" class="btn">Cancelar</button><button type="submit" class="btn primary">Guardar sesión</button></div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
